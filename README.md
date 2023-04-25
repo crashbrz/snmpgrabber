@@ -5,6 +5,7 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/crashbrz/snmpgrabber)
 
 #SNMPGrabber
+
 SNMPGrabber is a tool that allows the pentester to connect to SNMP servers from a specified IP Range using a community string and retrieve the system.sysDescr.0 MIB value by default. This tool 
 is designed to make the Gathering of evidence and Proof of Concept (PoC) easier by automating the process of collecting SNMP data from a large number of devices.
 

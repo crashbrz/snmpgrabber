@@ -1,4 +1,4 @@
-rom pysnmp.hlapi import *
+from pysnmp.hlapi import *
 import ipaddress
 import argparse
 

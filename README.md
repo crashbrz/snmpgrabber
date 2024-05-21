@@ -9,7 +9,7 @@
 SNMPGrabber is a tool that allows the pentester to connect to SNMP servers from a specified IP Range using a community string and retrieve the system.sysDescr.0 MIB value by default. This tool 
 is designed to make the Gathering of evidence and Proof of Concept (PoC) easier by automating the process of collecting SNMP data from a large number of devices.
 
-With SNMPGrabber, users can easily specify the IP range to scan and the SNMP community string for authentication. In addition to this, users can also set the timeout value and specify a custom SNMP port if necessary.
+With SNMPGrabber, users can easily specify the IP range to scan and the SNMP community string for authentication. In addition, users can set the timeout value and specify a custom SNMP port if necessary.
 
 By default, SNMPGrabber retrieves the system.sysDescr.0 MIB value, which provides information about the system's hardware and software configuration. However, users can also specify a custom OID to collect data from a different MIB.
 
@@ -40,9 +40,10 @@ Run snmpgrabber.py -h to see all options. Also, you can contact me (@crashbrz) o
 
 ### Installation ###
 Clone the repository in the desired location.<br>
+pip install -r requirements.txt<br>
 
 ### License ###
-SNMPGrabber is licensed under the SushiWare license. Check [docs/license.txt](docs/license.txt) for more information.
+SNMPGrabber is licensed under the SushiWare license. For more information, check [docs/license.txt](docs/license.txt).
  
 ### Python Version ###
 Tested on:<br>

@@ -1,6 +1,7 @@
-from pysnmp.hlapi import *
 import ipaddress
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from pysnmp.hlapi import *
 
 parser = argparse.ArgumentParser(description='Retrieve SNMP system.sysDescr.0 MIB value from a subnet by default.')
 parser.add_argument('-c', '--community', required=True, help='SNMP community string.')
@@ -9,6 +10,7 @@ parser.add_argument('-t', '--timeout', type=int, default=1000, help='Timeout val
 parser.add_argument('-o', '--output', help='Output file name.')
 parser.add_argument('-m', '--mib', default='1.3.6.1.2.1.1.1.0', help='MIB OID number (Default: system.sysDescr.0 - OID: 1.3.6.1.2.1.1.1.0)')
 parser.add_argument('-p', '--port', type=int, default=161, help='SNMP service port (default 161).')
+parser.add_argument('--threads', type=int, default=10, help='Number of threads to use (default 10).')
 args = parser.parse_args()
 
 def get_sysdescr(ip_address, community, timeout):
@@ -21,24 +23,32 @@ def get_sysdescr(ip_address, community, timeout):
     )
 
     if errorIndication:
-        print(ip_address + ':' +  str(errorIndication))
+        return f"{ip_address}: {str(errorIndication)}"
     elif errorStatus:
-        print('%s at %s' % (errorStatus.prettyPrint(),
-                            errorIndex and varBinds[int(errorIndex) - 1][0] or '?'))
+        return f"{ip_address}: {errorStatus.prettyPrint()} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
     else:
         for varBind in varBinds:
-            print(ip_address + ':' + varBind.prettyPrint())
-            return varBind.prettyPrint()
+            return f"{ip_address}: {varBind.prettyPrint()}"
+    return None
 
-output = ''
-for ip in ipaddress.IPv4Network(args.ip):
-    # print('Grabbing from: ' + str(ip))
-    result = get_sysdescr(str(ip), args.community, args.timeout)
-    if result:
-        output += str(ip) + ':' + result + '\r\n'
+def main():
+    ip_list = [str(ip) for ip in ipaddress.IPv4Network(args.ip)]
+    output = ''
 
-if args.output:
-    with open(args.output, 'w') as f:
-        f.write(output)
-else:
-    print(output)
+    with ThreadPoolExecutor(max_workers=args.threads) as executor:
+        futures = {executor.submit(get_sysdescr, ip, args.community, args.timeout): ip for ip in ip_list}
+
+        for future in as_completed(futures):
+            result = future.result()
+            if result:
+                output += result + '\r\n'
+                print(result)
+
+    if args.output:
+        with open(args.output, 'w') as f:
+            f.write(output)
+    else:
+        print(output)
+
+if __name__ == "__main__":
+    main()

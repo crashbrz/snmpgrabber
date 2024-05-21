@@ -23,9 +23,9 @@ def get_sysdescr(ip_address, community, timeout):
     )
 
     if errorIndication:
-        return f"{ip_address}: {str(errorIndication)}"
+        return None
     elif errorStatus:
-        return f"{ip_address}: {errorStatus.prettyPrint()} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
+        return None
     else:
         for varBind in varBinds:
             return f"{ip_address}: {varBind.prettyPrint()}"
@@ -33,22 +33,16 @@ def get_sysdescr(ip_address, community, timeout):
 
 def main():
     ip_list = [str(ip) for ip in ipaddress.IPv4Network(args.ip)]
-    output = ''
 
-    with ThreadPoolExecutor(max_workers=args.threads) as executor:
+    with ThreadPoolExecutor(max_workers=args.threads) as executor, open(args.output, 'w') as f:
         futures = {executor.submit(get_sysdescr, ip, args.community, args.timeout): ip for ip in ip_list}
 
         for future in as_completed(futures):
             result = future.result()
             if result:
-                output += result + '\r\n'
                 print(result)
-
-    if args.output:
-        with open(args.output, 'w') as f:
-            f.write(output)
-    else:
-        print(output)
+                f.write(result + '\n')
+                f.flush()
 
 if __name__ == "__main__":
     main()

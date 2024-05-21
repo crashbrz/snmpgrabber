@@ -2,6 +2,8 @@ import ipaddress
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pysnmp.hlapi import *
+from tqdm import tqdm
+import sys
 
 parser = argparse.ArgumentParser(description='Retrieve SNMP system.sysDescr.0 MIB value from a subnet by default.')
 parser.add_argument('-c', '--community', required=True, help='SNMP community string.')
@@ -37,12 +39,14 @@ def main():
     with ThreadPoolExecutor(max_workers=args.threads) as executor, open(args.output, 'w') as f:
         futures = {executor.submit(get_sysdescr, ip, args.community, args.timeout): ip for ip in ip_list}
 
-        for future in as_completed(futures):
-            result = future.result()
-            if result:
-                print(result)
-                f.write(result + '\n')
-                f.flush()
+        with tqdm(total=len(futures), desc="Scanning IPs", dynamic_ncols=True) as pbar:
+            for future in as_completed(futures):
+                result = future.result()
+                if result:
+                    tqdm.write(result)
+                    f.write(result + '\n')
+                    f.flush()
+                pbar.update(1)
 
 if __name__ == "__main__":
     main()

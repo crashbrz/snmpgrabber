@@ -3,7 +3,6 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pysnmp.hlapi import *
 from tqdm import tqdm
-import sys
 
 parser = argparse.ArgumentParser(description='Retrieve SNMP system.sysDescr.0 MIB value from a subnet by default.')
 parser.add_argument('-c', '--community', required=True, help='SNMP community string.')
@@ -24,13 +23,12 @@ def get_sysdescr(ip_address, community, timeout):
                ObjectType(ObjectIdentity(args.mib)))
     )
 
-    if errorIndication:
-        return None
-    elif errorStatus:
+    if errorIndication or errorStatus:
         return None
     else:
         for varBind in varBinds:
-            return f"{ip_address}: {varBind.prettyPrint()}"
+            mib_name = varBind[0].prettyPrint()  # Get MIB name from the OID
+            return f"{ip_address}|{mib_name}|{varBind[1]}"
     return None
 
 def main():
